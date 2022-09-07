@@ -1,0 +1,51 @@
+[package]
+name = "app"
+version = "0.1.0"
+description = "Lol Assistant made by Jinker."
+authors = ["Jinker"]
+license = "MIT"
+repository = ""
+default-run = "app"
+edition = "2021"
+rust-version = "1.57"
+build = "build.rs"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[build-dependencies]
+tauri-build = { version = "1.0.4", features = [] }
+
+[target.'cfg(windows)'.build-dependencies]
+winres = "0.1"
+
+[dependencies]
+serde_json = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+tauri = { version = "1.0.5", features = ["api-all", "devtools", "system-tray"] }
+regex = "1"
+reqwest = { version = "0.11", features = ["json", "cookies"] }
+tokio = { version = "1", features = ["full"] }
+base64 = "0.13"
+tokio-tungstenite = { version = "0.17.2", features = ["rustls-tls-native-roots"] }
+rustls="*"
+rustls-pemfile="1"
+http="*"
+url="*"
+futures-util = "0.3"
+jsonpath-rust = "0.1.5"
+async-trait = "0.1.57"
+scraper = "0.13.0"
+tracing = "0.1"
+tracing-subscriber = "0.2"
+window-shadows = "0.1"
+sysinfo = "0.25.3"
+directories = "4"
+chrono = { version = "0.4", features = ["serde"] }
+
+[features]
+# by default Tauri runs in production mode
+# when `tauri dev` runs it is executed with `cargo run --no-default-features` if `devPath` is an URL
+default = [ "custom-protocol" ]
+# this feature is used used for production builds where `devPath` points to the filesystem
+# DO NOT remove this
+custom-protocol = [ "tauri/custom-protocol" ]
