@@ -90,7 +90,7 @@ appWindow.onResized(s => {
                 <template #title>
                     <h2>App information</h2>
                 </template>
-                <h3>Version: v0.1</h3>
+                <h3>Version: v0.2.0</h3>
                 <h3>Author: Jinker</h3>
                 <h3>Data path: <el-tag type="info">{{ config?.data_path }}</el-tag>
                 </h3>

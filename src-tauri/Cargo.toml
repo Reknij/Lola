@@ -1,6 +1,6 @@
 [package]
 name = "app"
-version = "0.1.0"
+version = "0.2.0"
 description = "Lol Assistant made by Jinker."
 authors = ["Jinker"]
 license = "MIT"
@@ -13,7 +13,7 @@ build = "build.rs"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [build-dependencies]
-tauri-build = { version = "1.0.4", features = [] }
+tauri-build = { version = "1.2.1", features = [] }
 
 [target.'cfg(windows)'.build-dependencies]
 winres = "0.1"
@@ -21,7 +21,7 @@ winres = "0.1"
 [dependencies]
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
-tauri = { version = "1.0.5", features = ["api-all", "devtools", "system-tray"] }
+tauri = { version = "1.2.1", features = ["api-all", "devtools", "system-tray"] }
 regex = "1"
 reqwest = { version = "0.11", features = ["json", "cookies"] }
 tokio = { version = "1", features = ["full"] }
@@ -37,7 +37,7 @@ async-trait = "0.1.57"
 scraper = "0.13.0"
 tracing = "0.1"
 tracing-subscriber = "0.2"
-window-shadows = "0.1"
+window-shadows = "0.2"
 sysinfo = "0.25.3"
 directories = "4"
 chrono = { version = "0.4", features = ["serde"] }
