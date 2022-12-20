@@ -54,7 +54,7 @@ function getBorderColorByRuneId(runeId: number): string {
 
 <template>
     <el-row v-for="rune in props.runes" align="middle" justify="center">
-        <el-card style="margin-top: 10px; margin-bottom: 10px;n" class="maxWidth">
+        <el-card style="margin-top: 10px; margin-bottom: 10px;" class="maxWidth">
             <h2 v-if="props.isCustom">{{rune.name}}</h2>
             <el-row align="middle">
                 <el-avatar :size="68" style="background-color: black;" :style="{'border': `2px solid ${getBorderColorByRuneId(rune.primary_page_id)}`}">

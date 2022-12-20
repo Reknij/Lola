@@ -5,6 +5,7 @@ import { ref } from 'vue';
 import { ChampionInfo } from './models/LOL/ChampionInfo';
 import { Mastery } from './models/LOL/Materies';
 import { SummonerInfo } from './models/LOL/SummonerInfo';
+import { currentSummoner, summonerIconUrl } from './utils/global';
 import { getChampionIconUrl, lget } from './utils/lcu';
 
 interface ChampionMasteryTop {
@@ -13,8 +14,6 @@ interface ChampionMasteryTop {
     summonerId: number
 }
 
-let summonerIconUrl = ref("");
-let summoner = ref<SummonerInfo>();
 let masteriesTop = ref<ChampionMasteryTop>();
 let masteriesTopInfo = ref<any>([])
 let scrollbarHeight = ref(480)
@@ -28,10 +27,10 @@ function parseGrade(highestGrade: string): string {
 }
 
 async function init() {
-    summoner.value = await lget<SummonerInfo>("/lol-summoner/v1/current-summoner");
-    summonerIconUrl.value = `https://cdn.communitydragon.org/latest/profile-icon/${summoner.value.profileIconId}`
+    currentSummoner.value = await lget<SummonerInfo>("/lol-summoner/v1/current-summoner");
+    summonerIconUrl.value = `https://cdn.communitydragon.org/latest/profile-icon/${currentSummoner.value.profileIconId}`
 
-    let masteries: ChampionMasteryTop = await lget(`/lol-collections/v1/inventories/${summoner.value.summonerId}/champion-mastery/top?limit=10`);
+    let masteries: ChampionMasteryTop = await lget(`/lol-collections/v1/inventories/${currentSummoner.value.summonerId}/champion-mastery/top?limit=10`);
     if (masteries) {
         for (let index = 0; index < masteries.masteries.length; index++) {
             const element = masteries.masteries[index];
@@ -55,15 +54,15 @@ appWindow.onResized(s=>{
     <div>
         <el-row justify="center">
             <el-tooltip
-                :content="`${summoner?.xpSinceLastLevel} / ${summoner?.xpUntilNextLevel} to level ${(summoner?.summonerLevel ?? 0) + 1}.`"
+                :content="`${currentSummoner?.xpSinceLastLevel} / ${currentSummoner?.xpUntilNextLevel} to level ${(currentSummoner?.summonerLevel ?? 0) + 1}.`"
                 placement="bottom">
-                <el-progress type="circle" :percentage="summoner?.percentCompleteForNextLevel">
+                <el-progress type="circle" :percentage="currentSummoner?.percentCompleteForNextLevel">
                     <el-avatar :size="100" :src="summonerIconUrl" />
                 </el-progress>
             </el-tooltip>
             <div style="margin-left: 10px;">
-                <h1>{{ summoner?.displayName }}</h1>
-                <el-tag effect="dark" round> Level {{ summoner?.summonerLevel }}</el-tag>
+                <h1>{{ currentSummoner?.displayName }}</h1>
+                <el-tag effect="dark" round> Level {{ currentSummoner?.summonerLevel }}</el-tag>
             </div>
         </el-row>
         <el-row style="margin-top: 15px;" justify="start">

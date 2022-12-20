@@ -16,6 +16,7 @@ import {
   removeChampionCustomRunes,
   setCurrentRune,
   setCurrentSpell,
+  getAssignedPositionFromSession
 } from "./utils/lcu.js";
 import { appWindow } from "@tauri-apps/api/window";
 import { Switch, Refresh, Aim, Plus, Delete, Warning } from "@element-plus/icons-vue";
@@ -26,6 +27,7 @@ import { ChampionInfo } from "./models/LOL/ChampionInfo";
 import Runes from "./ChampionBuild/Runes.vue";
 import Spells from "./ChampionBuild/Spells.vue";
 import { LolRuneItem } from "./models/LOL/LolRuneItem";
+import { lanes } from "./utils/global";
 
 const props = defineProps<{
   clientSelecting: ClientSelecting;
@@ -42,38 +44,13 @@ let selectedLane = ref("");
 let selectDisable = ref(false);
 let loading = ref(true);
 let onChampSelect = ref(false);
-let lanes = [
-  {
-    label: "Top",
-    value: "top",
-  },
-  {
-    label: "Jungle",
-    value: "jungle",
-  },
-  {
-    label: "Mid",
-    value: "mid",
-  },
-  {
-    label: "Adc",
-    value: "adc",
-  },
-  {
-    label: "Support",
-    value: "support",
-  },
-  {
-    label: "Custom",
-    value: "custom",
-  },
-];
+
 let iconUrl = ref("/champions/empty.png");
 let gameMode = ref("UNKNOWN");
 let unlisten = ref<UnlistenFn>(() => { });
 
-async function load_champ(d: any) {
-  let championId = await getChampionIdFromSession(d);
+async function load_champ(session: any) {
+  let championId = await getChampionIdFromSession(session);
   if (championId != 0 && championId.toString() != championInfo.value?.key) {
     clearInfo();
 
@@ -98,7 +75,15 @@ async function load_champ(d: any) {
       await loadBuild("top"); //Aram and Urf mode no need lane, so give random lane to it.
     } else {
       let start = Date.now();
-      await autoSelect();
+      let lane = getAssignedPositionFromSession(session);
+      console.log(`assigned position: ${lane}`);
+      if (lane != 'none') {
+        selectedLane.value = lane;
+        await loadBuild(lane);
+      }
+      else {
+        await autoSelect();
+      }
       wasteTime.value = (Date.now() - start) / 1000;
     }
   }

@@ -6,6 +6,7 @@ import { invoke } from '@tauri-apps/api';
 import AmumuLoading from './AmumuLoading.vue';
 import { onUnmounted, watch } from 'vue';
 import ChampionBuild from './ChampionBuild.vue';
+import MatchHistory from './MatchHistory.vue';
 
 let activeTab = ref("dashboard");
 let unlisten = ref<UnlistenFn>(()=>{});
@@ -44,6 +45,9 @@ onUnmounted(()=>{
     </el-tab-pane>
     <el-tab-pane label="Champion build" name="championBuild">
       <champion-build :clientSelecting="clientSelecting"></champion-build>
+    </el-tab-pane>
+    <el-tab-pane label="Match History" name="matchHistory">
+      <MatchHistory></MatchHistory>
     </el-tab-pane>
   </el-tabs>
   <amumu-loading v-else>

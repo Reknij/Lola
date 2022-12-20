@@ -2,6 +2,8 @@ import { invoke } from "@tauri-apps/api";
 import { LolRuneItem } from "../models/LOL/LolRuneItem";
 import { RuneItem, SpellItem } from "../models/Backend/SelectChampion";
 import { Mode } from "../models/LOL/gameMode";
+import { SummonerInfo } from "../models/LOL/SummonerInfo";
+import { currentSummoner } from "./global";
 
 export function lget<T>(url: string): Promise<T> {
     return invoke<T>("lcu_get", {
@@ -129,3 +131,39 @@ function toLolRuneItem(original: LolRuneItem, r: RuneItem): any {
     original.subStyleId = r.secondary_page_id;
     original.selectedPerkIds = r.primary_rune_ids.concat(r.secondary_rune_ids, r.stat_mod_ids);
 }
+
+export function getAssignedPositionFromSession(session: any): string {
+    for (let index = 0; index < session.myTeam.length; index++) {
+        const summoner = session.myTeam[index];
+        if (summoner.summonerId == currentSummoner.value?.summonerId) {
+            let lane = (summoner.assignedPosition as string).toLowerCase();
+            switch (lane) {
+                case 'bottom': 
+                    return 'bot';
+                case 'jungle': 
+                    return 'jungle';
+                case 'top': 
+                    return 'top';
+                case 'middle': 
+                    return 'mid';
+                case 'utility': 
+                    return 'support';
+                default:
+                    return 'none';
+            }
+        }
+    }
+
+    return 'none'
+}
+
+export function getGameName(queueId: number): string{
+    switch (queueId) {
+      case 420 : return 'RANKED SOLO/DUO';
+      case 430 : return 'BLIND PICK';
+      case 440 : return 'RANKED FLEX';
+      case 450 : return 'ARAM';
+      case 900 : return 'URF';
+    }
+    return 'Other Mode'
+  }
