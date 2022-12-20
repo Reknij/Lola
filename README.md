@@ -12,3 +12,14 @@ Lola is League Of Legends Assistant.
 - The application references the code of [Champ-r](https://github.com/cangzhang/champ-r/) and [Frank](https://github.com/Java-S12138/frank)
 - All assets is found on web.
 - This project is mainly for me to learn [Rust](https://github.com/rust-lang/rust).
+
+# Screenshots
+## Dashboard
+![Lola home ui](screenshots/lola_dashboard.png?raw=true)
+
+## Champion build
+![Lola home ui](screenshots/lola_select_champion.png?raw=true)
+
+## Match History
+![Lola home ui](screenshots/lola_match_history.png?raw=true)
+
