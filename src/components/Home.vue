@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { appWindow } from '@tauri-apps/api/window';
-import { ref } from '@vue/reactivity';
+import { ref } from 'vue';
 import { listen, UnlistenFn } from '@tauri-apps/api/event';
 import { invoke } from '@tauri-apps/api';
 import AmumuLoading from './AmumuLoading.vue';

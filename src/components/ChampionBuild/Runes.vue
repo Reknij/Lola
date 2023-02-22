@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { Delete, Switch } from '@element-plus/icons-vue';
+import { Delete, Switch, Warning } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
 import { RuneItem } from '../models/Backend/SelectChampion';
 import { removeChampionCustomRune, setCurrentRune } from '../utils/lcu';
@@ -21,10 +21,10 @@ async function setRune(rune: RuneItem) {
 }
 
 async function removeRune(rune: RuneItem) {
-    if (await removeChampionCustomRune(props.championName, props.gameMode, rune.id)) {
+    if (await removeChampionCustomRune(props.championName, props.gameMode, rune.name)) {
         for (let index = 0; index < props.runes.length; index++) {
             const r = props.runes[index];
-            if (r.id == rune.id) {
+            if (r.name == rune.name) {
                 props.runes.splice(index, 1);
                 break;
             }
@@ -36,7 +36,7 @@ async function removeRune(rune: RuneItem) {
     }
     else {
         ElMessage.warning({
-            message: "Remove rune failed because not found rune id in custom!",
+            message: "Remove rune failed because not found target rune in custom!",
             grouping: true
         })
     }
@@ -55,21 +55,28 @@ function getBorderColorByRuneId(runeId: number): string {
 <template>
     <el-row v-for="rune in props.runes" align="middle" justify="center">
         <el-card style="margin-top: 10px; margin-bottom: 10px;" class="maxWidth">
-            <h2 v-if="props.isCustom">{{rune.name}}</h2>
+            <h2 v-if="props.isCustom">{{ rune.name }}</h2>
             <el-row align="middle">
-                <el-avatar :size="68" style="background-color: black;" :style="{'border': `2px solid ${getBorderColorByRuneId(rune.primary_page_id)}`}">
+                <el-avatar :size="68" style="background-color: black;"
+                    :style="{ 'border': `2px solid ${getBorderColorByRuneId(rune.primary_page_id)}` }">
                     <el-avatar class="runeOrSpell" :size="48" :src="`/runes/${rune.primary_page_id}.png`"></el-avatar>
                 </el-avatar>
-                <el-avatar class="nearLeft runeOrSpell" :style="{'border': `2px solid ${getBorderColorByRuneId(rune.primary_page_id)}`}" :size="48" v-for="p in rune.primary_rune_ids" :src="`/runes/${p}.png`">
+                <el-avatar class="nearLeft runeOrSpell"
+                    :style="{ 'border': `2px solid ${getBorderColorByRuneId(rune.primary_page_id)}` }" :size="48"
+                    v-for="p in rune.primary_rune_ids" :src="`/runes/${p}.png`">
                 </el-avatar>
             </el-row>
             <el-row align="middle" style="margin-top: 15px;">
-                <el-avatar :size="68" style="background-color: black;" :style="{'border': `2px solid ${getBorderColorByRuneId(rune.secondary_page_id)}`}">
+                <el-avatar :size="68" style="background-color: black;"
+                    :style="{ 'border': `2px solid ${getBorderColorByRuneId(rune.secondary_page_id)}` }">
                     <el-avatar class="runeOrSpell" :size="48" :src="`/runes/${rune.secondary_page_id}.png`"></el-avatar>
                 </el-avatar>
-                <el-avatar class="nearLeft runeOrSpell" :style="{'border': `2px solid ${getBorderColorByRuneId(rune.secondary_page_id)}`}" :size="48" v-for="p in rune.secondary_rune_ids" :src="`/runes/${p}.png`">
+                <el-avatar class="nearLeft runeOrSpell"
+                    :style="{ 'border': `2px solid ${getBorderColorByRuneId(rune.secondary_page_id)}` }" :size="48"
+                    v-for="p in rune.secondary_rune_ids" :src="`/runes/${p}.png`">
                 </el-avatar>
-                <el-avatar class="nearLeft runeOrSpell" style="border: 2px solid gold;" :size="32" v-for="p in rune.stat_mod_ids" :src="`/runes/${p}.png`">
+                <el-avatar class="nearLeft runeOrSpell" style="border: 2px solid gold;" :size="32"
+                    v-for="p in rune.stat_mod_ids" :src="`/runes/${p}.png`">
                 </el-avatar>
             </el-row>
             <el-row align="middle" style="margin-top: 15px;">
@@ -83,9 +90,12 @@ function getBorderColorByRuneId(runeId: number): string {
                 </div>
 
                 <el-button type="primary" :icon="Switch" circle class="nearLeft" @click="setRune(rune)" />
-                <el-button type="danger" v-if="props.isCustom" :icon="Delete" circle class="nearLeft"
-                    @click="removeRune(rune)" />
-            </el-row>
-        </el-card>
-    </el-row>
-</template>
+                <el-popconfirm :icon="Warning" icon-color="red" title="Sure?" @confirm="removeRune(rune)">
+                    <template #reference>
+                        <el-button type="danger" v-if="props.isCustom" :icon="Delete" circle class="nearLeft" />
+                    </template>
+            </el-popconfirm>
+
+        </el-row>
+    </el-card>
+</el-row></template>

@@ -99,6 +99,7 @@ fn main() {
             for_render::save_app_config,
             for_render::clear_cache,
             for_render::log,
+            for_render::show_in_folder,
         ])
         .build(tauri::generate_context!())
         .expect("Can't run tauri application.");

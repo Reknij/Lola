@@ -1,19 +1,23 @@
 <script lang="ts" setup>
 import { Delete } from '@element-plus/icons-vue';
 import { invoke } from '@tauri-apps/api';
+import { getVersion } from '@tauri-apps/api/app';
 import { appWindow } from '@tauri-apps/api/window';
 import { ElMessage } from 'element-plus';
 import { ref } from 'vue';
 import { AppConfig } from './models/Backend/AppConfig';
 import { getAppConfig, saveAppConfig, setAppConfig } from './utils/appConfig';
+import { showInFolder } from './utils/global';
 
 let activeName = ref("description");
 let scrollbarHeight = ref(680);
+let appVersion = ref("unknown")
 
 let config = ref<AppConfig>();
 
 async function init() {
     config.value = await getAppConfig();
+    appVersion.value = await getVersion();
 }
 init();
 let options = [
@@ -90,13 +94,19 @@ appWindow.onResized(s => {
                 <template #title>
                     <h2>App information</h2>
                 </template>
-                <h3>Version: v0.2.0</h3>
+                <h3>Version: v{{ appVersion }}</h3>
                 <h3>Author: Jinker</h3>
-                <h3>Data path: <el-tag type="info">{{ config?.data_path }}</el-tag>
+                <h3>Data path: <el-tag type="info">
+                        <el-button link>{{ config?.data_path }}</el-button>
+                    </el-tag>
                 </h3>
-                <h3>Cache path: <el-tag type="info">{{ config?.cache_path }}</el-tag>
+                <h3>Cache path: <el-tag type="info"><el-button link @click="config && showInFolder(config?.cache_path)">{{
+                    config?.cache_path
+                }}</el-button></el-tag>
                 </h3>
-                <h3>Config path: <el-tag type="info">{{ config?.config_path }}</el-tag>
+                <h3>Config path: <el-tag type="info"><el-button link @click="config && showInFolder(config?.config_path)">{{
+                    config?.config_path
+                }}</el-button></el-tag>
                 </h3>
             </el-collapse-item>
         </el-collapse>

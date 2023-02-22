@@ -1,3 +1,4 @@
+import { invoke } from "@tauri-apps/api";
 import { ref } from "vue";
 import { SummonerInfo } from "../models/LOL/SummonerInfo";
 
@@ -30,8 +31,15 @@ let lanes = [
     },
   ];
 
+async function showInFolder(path: string) {
+  return await invoke("show_in_folder", {
+    path
+});
+}
+
 export {
     currentSummoner,
     summonerIconUrl,
     lanes,
+    showInFolder,
 }

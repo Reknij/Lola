@@ -2,8 +2,7 @@
 // This starter template is using Vue 3 <script setup> SFCs
 // Check out https://vuejs.org/api/sfc-script-setup.html#script-setup
 import { appWindow, PhysicalSize } from '@tauri-apps/api/window';
-import { useMouseInElement } from '@vueuse/core';
-import { onUnmounted, provide, ref } from 'vue';
+import { provide, ref } from 'vue';
 import appBar from './components/AppBar.vue';
 import appIcon from '../appIcon.svg'
 import MiniUI from './components/MiniUI.vue';

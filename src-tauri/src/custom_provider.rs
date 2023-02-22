@@ -75,7 +75,7 @@ impl CustomProvider {
     ) -> bool {
         let mut runes = self.get_champion_lol_runes(champion_name, mode).await;
         for r in &runes {
-            if r.id == rune_item.id {
+            if r.name == rune_item.name {
                 return false;
             }
         }
@@ -89,10 +89,10 @@ impl CustomProvider {
         return true;
     }
 
-    pub async fn remove_champion_rune(&self, champion_name: &str, mode: GameMode, id: i64) -> bool {
+    pub async fn remove_champion_rune(&self, champion_name: &str, mode: GameMode, rune_name: &str) -> bool {
         let mut runes = self.get_champion_lol_runes(champion_name, mode).await;
         for (i, rune) in runes.iter().enumerate() {
-            if rune.id == id {
+            if rune.name == rune_name {
                 runes.remove(i);
                 let build_file = self
                     .custom_builds

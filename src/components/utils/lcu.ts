@@ -86,11 +86,11 @@ export async function addChampionCustomRune(championName: string, mode: string, 
     });
 }
 
-export async function removeChampionCustomRune(championName: string, mode: string, id: number): Promise<boolean> {
+export async function removeChampionCustomRune(championName: string, mode: string, runeName: string): Promise<boolean> {
     return await invoke("remove_champion_custom_rune", {
         championName,
         mode,
-        id
+        runeName
     });
 }
 

@@ -211,7 +211,7 @@ async function loadBuild(val?: string) {
     }
     loading.value = true;
     build.value = await loadBuildCore(
-      championInfo.value.name,
+      championInfo.value.id,
       val,
       gameMode.value
     );
@@ -330,7 +330,8 @@ onUnmounted(() => {
     </el-row>
 
     <AmumuLoading v-if="!loading && build?.runes?.length == 0">
-      <h4>It seems that the current champion is not suitable for this lane.</h4>
+      <h4 v-if="build?.is_custom">This champion has no custom runes for the current game mode</h4>
+      <h4 v-else>It seems that the current champion is not suitable for this lane.</h4>
     </AmumuLoading>
 
     <el-skeleton v-else :rows="15" style="margin-top: 15px;" :loading="loading" animated>
@@ -344,7 +345,7 @@ onUnmounted(() => {
 
         <Spells v-if="build && championInfo" :spells="build.spells"></Spells>
         <Runes v-if="build && championInfo" :is-custom="build.is_custom" :runes="build.runes"
-          :champion-name="championInfo.name" :selected-lane="selectedLane" :game-mode="gameMode"></Runes>
+          :champion-name="championInfo.id" :selected-lane="selectedLane" :game-mode="gameMode"></Runes>
       </el-scrollbar>
     </el-skeleton>
   </div>

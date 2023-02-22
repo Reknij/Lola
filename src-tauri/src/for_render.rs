@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{sync::Arc, process::Command};
 
 use crate::{
     app_config::AppConfig,
@@ -87,6 +87,52 @@ pub async fn get_app_status(
     app_status: tauri::State<'_, Arc<Mutex<AppStatus>>>,
 ) -> Result<AppStatus, String> {
     Ok(app_status.lock().await.clone())
+}
+
+#[tauri::command]
+#[instrument]
+pub async fn show_in_folder(path: String) {
+  #[cfg(target_os = "windows")]
+  {
+    Command::new("explorer")
+        .args(["/select,", &path]) // The comma after select is not a typo
+        .spawn()
+        .unwrap();
+  }
+
+  #[cfg(target_os = "linux")]
+  {
+    if path.contains(",") {
+      // see https://gitlab.freedesktop.org/dbus/dbus/-/issues/76
+      let new_path = match metadata(&path).unwrap().is_dir() {
+        true => path,
+        false => {
+          let mut path2 = PathBuf::from(path);
+          path2.pop();
+          path2.into_os_string().into_string().unwrap()
+        }
+      };
+      Command::new("xdg-open")
+          .arg(&new_path)
+          .spawn()
+          .unwrap();
+    } else {
+      Command::new("dbus-send")
+          .args(["--session", "--dest=org.freedesktop.FileManager1", "--type=method_call",
+                "/org/freedesktop/FileManager1", "org.freedesktop.FileManager1.ShowItems",
+                format!("array:string:\"file://{path}\"").as_str(), "string:\"\""])
+          .spawn()
+          .unwrap();
+    }
+  }
+
+  #[cfg(target_os = "macos")]
+  {
+    Command::new("open")
+        .args(["-R", &path])
+        .spawn()
+        .unwrap();
+  }
 }
 
 #[tauri::command]
@@ -261,10 +307,10 @@ pub async fn remove_champion_custom_rune(
     custom: tauri::State<'_, CustomProvider>,
     champion_name: String,
     mode: String,
-    id: i64,
+    rune_name: String,
 ) -> Result<bool, String> {
     Ok(custom
-        .remove_champion_rune(&champion_name, GameMode::from_str(&mode), id)
+        .remove_champion_rune(&champion_name, GameMode::from_str(&mode), &rune_name)
         .await)
 }
 
