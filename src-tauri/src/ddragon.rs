@@ -92,12 +92,12 @@ impl DDragon {
         }
     }
 
-    pub fn get_champion_information(&self, id: &str) -> Result<Champion, String> {
-        if let Some(c) = self.champions.get(id) {
+    pub fn get_champion_information(&self, key: &str) -> Result<Champion, String> {
+        if let Some(c) = self.champions.get(key) {
             return Ok(c.clone());
         }
 
-        Err(String::from(format!("Id value {} no match with ddragon!", id)))
+        Err(String::from(format!("Key value {} no match with ddragon!", key)))
     }
 
     pub fn get_version(&self) -> String {

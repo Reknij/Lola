@@ -138,16 +138,16 @@ pub async fn show_in_folder(path: String) {
 #[tauri::command]
 #[instrument]
 pub async fn get_champion_build(
-    champion_name: String,
+    champion_id: String,
     lane: String,
-    mode: String,
+    game_mode: String,
     provider: tauri::State<'_, Mutex<DynSource>>,
     custom: tauri::State<'_, CustomProvider>,
 ) -> Result<Build, String> {
     if lane == "custom" {
         info!("Get custom from local..");
         let runes = custom
-            .get_champion_runes(&champion_name, GameMode::from_str(&mode))
+            .get_champion_runes(&champion_id, GameMode::from_str(&game_mode))
             .await;
         return Ok(Build {
             runes,
@@ -162,9 +162,9 @@ pub async fn get_champion_build(
         .lock()
         .await
         .get_champion_info(
-            &champion_name,
+            &champion_id,
             Lane::from_str(&lane).unwrap(),
-            GameMode::from_str(&mode),
+            GameMode::from_str(&game_mode),
         )
         .await
         .unwrap();
@@ -198,18 +198,18 @@ pub async fn get_champion_build(
 #[tauri::command]
 #[instrument]
 pub async fn get_champion_all_build(
-    champion_name: String,
-    mode: String,
+    champion_id: String,
+    game_mode: String,
     provider: tauri::State<'_, Mutex<DynSource>>,
 ) -> Result<Vec<Build>, String> {
     let builds: Arc<Mutex<Vec<Build>>> = Arc::new(Mutex::new(Vec::with_capacity(5)));
     let p = provider.lock().await;
     let all = try_join!(
-        p.get_champion_info(&champion_name, Lane::Top, GameMode::from_str(&mode)),
-        p.get_champion_info(&champion_name, Lane::Jungle, GameMode::from_str(&mode)),
-        p.get_champion_info(&champion_name, Lane::Mid, GameMode::from_str(&mode)),
-        p.get_champion_info(&champion_name, Lane::Bot, GameMode::from_str(&mode)),
-        p.get_champion_info(&champion_name, Lane::Support, GameMode::from_str(&mode)),
+        p.get_champion_info(&champion_id, Lane::Top, GameMode::from_str(&game_mode)),
+        p.get_champion_info(&champion_id, Lane::Jungle, GameMode::from_str(&game_mode)),
+        p.get_champion_info(&champion_id, Lane::Mid, GameMode::from_str(&game_mode)),
+        p.get_champion_info(&champion_id, Lane::Bot, GameMode::from_str(&game_mode)),
+        p.get_champion_info(&champion_id, Lane::Support, GameMode::from_str(&game_mode)),
     );
     let (top, jg, mid, bot, sp) = all.unwrap();
     let lanes = [top, jg, mid, bot, sp];
@@ -260,9 +260,9 @@ pub async fn clear_cache(provider: tauri::State<'_, Mutex<DynSource>>) -> Result
 #[instrument]
 pub async fn get_champion_raw_info(
     ddragon: tauri::State<'_, DDragon>,
-    champion_id: String,
+    champion_key: String,
 ) -> Result<ddragon::Champion, String> {
-    ddragon.get_champion_information(&champion_id)
+    ddragon.get_champion_information(&champion_key)
 }
 
 #[tauri::command]
@@ -292,12 +292,12 @@ pub async fn get_champion_icon(
 #[instrument]
 pub async fn add_champion_custom_rune(
     custom: tauri::State<'_, CustomProvider>,
-    champion_name: String,
-    mode: String,
+    champion_id: String,
+    game_mode: String,
     rune_item: LolRuneItem,
 ) -> Result<bool, String> {
     Ok(custom
-        .add_champion_rune(&champion_name, GameMode::from_str(&mode), rune_item)
+        .add_champion_rune(&champion_id, GameMode::from_str(&game_mode), rune_item)
         .await)
 }
 
@@ -305,12 +305,12 @@ pub async fn add_champion_custom_rune(
 #[instrument]
 pub async fn remove_champion_custom_rune(
     custom: tauri::State<'_, CustomProvider>,
-    champion_name: String,
-    mode: String,
+    champion_id: String,
+    game_mode: String,
     rune_name: String,
 ) -> Result<bool, String> {
     Ok(custom
-        .remove_champion_rune(&champion_name, GameMode::from_str(&mode), &rune_name)
+        .remove_champion_rune(&champion_id, GameMode::from_str(&game_mode), &rune_name)
         .await)
 }
 
@@ -318,11 +318,11 @@ pub async fn remove_champion_custom_rune(
 #[instrument]
 pub async fn remove_champion_custom_runes(
     custom: tauri::State<'_, CustomProvider>,
-    champion_name: String,
-    mode: String,
+    champion_id: String,
+    game_mode: String,
 ) -> Result<bool, String> {
     Ok(custom
-        .remove_champion_runes(&champion_name, GameMode::from_str(&mode))
+        .remove_champion_runes(&champion_id, GameMode::from_str(&game_mode))
         .await)
 }
 

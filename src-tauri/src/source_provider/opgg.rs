@@ -21,7 +21,7 @@ pub struct OPGGChampionInfo {
     next_data: String,
     is_cache: bool,
     lane: Lane,
-    champion_name: String,
+    champion_id: String,
 }
 
 #[async_trait]
@@ -44,7 +44,7 @@ impl ChampionInfo for OPGGChampionInfo {
         for mut r in &mut runes {
             r.name = format!(
                 "[Lola] {}-{:?} ({:.2}%/{} games)",
-                self.champion_name,
+                self.champion_id,
                 self.lane,
                 r.win * 100 / r.play,
                 r.play
@@ -91,7 +91,7 @@ impl Source for OPGG {
 
     async fn get_champion_info(
         &self,
-        champion_name: &str,
+        champion_id: &str,
         lane: Lane,
         mode: GameMode,
     ) -> Result<DynChampionInfo, String> {
@@ -99,45 +99,45 @@ impl Source for OPGG {
             FetchMode::Online => Ok(Box::new(OPGGChampionInfo {
                 is_cache: false,
                 next_data: self
-                    .get_champion_data_online(champion_name, lane, mode)
+                    .get_champion_data_online(champion_id, lane, mode)
                     .await?,
                 lane,
-                champion_name: champion_name.to_owned(),
+                champion_id: champion_id.to_owned(),
             })),
             FetchMode::Auto => {
                 if self
                     .cache_manager
                     .lock()
                     .await
-                    .is_champion_data_old(champion_name, lane, mode)
+                    .is_champion_data_old(champion_id, lane, mode)
                 {
                     let mut next_data = self
-                        .get_champion_data_online(champion_name, lane, mode)
+                        .get_champion_data_online(champion_id, lane, mode)
                         .await?;
                     let next_data = self.format_data(&mut next_data);
                     self.cache_manager
                         .lock()
                         .await
-                        .update_champion(champion_name, lane, mode, &next_data)
+                        .update_champion(champion_id, lane, mode, &next_data)
                         .await?;
                     Ok(Box::new(OPGGChampionInfo {
                         is_cache: false,
                         next_data,
                         lane,
-                        champion_name: champion_name.to_owned(),
+                        champion_id: champion_id.to_owned(),
                     }))
                 } else {
                     let next_data = self
                         .cache_manager
                         .lock()
                         .await
-                        .get_champion_data(champion_name, lane, mode)
+                        .get_champion_data(champion_id, lane, mode)
                         .await?;
                     Ok(Box::new(OPGGChampionInfo {
                         is_cache: true,
                         next_data,
                         lane,
-                        champion_name: champion_name.to_owned(),
+                        champion_id: champion_id.to_owned(),
                     }))
                 }
             }
@@ -192,11 +192,11 @@ impl OPGG {
 
     async fn get_champion_data_online(
         &self,
-        champion_name: &str,
+        champion_id: &str,
         lane: Lane,
         mode: GameMode,
     ) -> Result<String, String> {
-        let champion_name: String = champion_name
+        let champion_id: String = champion_id
             .chars()
             .filter(|c| !is_illegal_for_opgg(c))
             .collect(); //remove illegal characters.
@@ -204,12 +204,12 @@ impl OPGG {
             GameMode::Aram | GameMode::Urf => format!(
                 "https://www.op.gg/{}/{}/build",
                 mode_as_opgg(mode),
-                champion_name
+                champion_id
             ),
             GameMode::Classic => format!(
                 "https://www.op.gg/{}/{}/{}/build",
                 mode_as_opgg(mode),
-                champion_name,
+                champion_id,
                 lane.to_string()
             ),
         };

@@ -15,7 +15,7 @@ pub trait Source: Send + Sync {
     fn fetch_mode(&self) -> FetchMode;
     async fn get_champion_info(
         &self,
-        champion: &str,
+        champion_id: &str,
         lane: Lane,
         mode: GameMode,
     ) -> Result<DynChampionInfo, String>;
