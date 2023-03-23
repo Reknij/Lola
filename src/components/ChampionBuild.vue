@@ -9,14 +9,14 @@ import { Build, RuneItem, SpellItem } from "./models/Backend/SelectChampion.js";
 import {
   addChampionCustomRune,
   getChampionIconUrl,
-  getChampionIdFromSession,
+  getChampionKeyFromSession,
   getCurrentGameMode,
   getCurrentRune,
-  lget,
   removeChampionCustomRunes,
-  setCurrentRune,
-  setCurrentSpell,
-  getAssignedPositionFromSession
+  getAssignedPositionFromSession,
+isChampionSelecting,
+lget,
+getChampionRawInfo,
 } from "./utils/lcu.js";
 import { appWindow } from "@tauri-apps/api/window";
 import { Switch, Refresh, Aim, Plus, Delete, Warning } from "@element-plus/icons-vue";
@@ -28,11 +28,13 @@ import Runes from "./ChampionBuild/Runes.vue";
 import Spells from "./ChampionBuild/Spells.vue";
 import { LolRuneItem } from "./models/LOL/LolRuneItem";
 import { lanes } from "./utils/global";
+import { BuildManager } from "./ChampionBuild/BuildManager";
 
 const props = defineProps<{
   clientSelecting: ClientSelecting;
 }>();
 
+let buildManager = new BuildManager();
 let currentRune = ref<LolRuneItem>();
 let dialogVisible = ref(false);
 let setMiniImg: any = inject("setMiniImg");
@@ -50,13 +52,11 @@ let gameMode = ref("UNKNOWN");
 let unlisten = ref<UnlistenFn>(() => { });
 
 async function load_champ(session: any) {
-  let championId = await getChampionIdFromSession(session);
-  if (championId != 0 && championId.toString() != championInfo.value?.key) {
+  let championKey = await getChampionKeyFromSession(session);
+  if (championKey != 0 && championKey.toString() != championInfo.value?.key) {
     clearInfo();
 
-    championInfo.value = await invoke("get_champion_raw_info", {
-      championId: championId.toString(),
-    });
+    championInfo.value = await getChampionRawInfo(championKey.toString());
     if (!championInfo.value) return;
     iconUrl.value = championInfo.value.key
       ? await getChampionIconUrl(championInfo.value.key)
@@ -71,6 +71,7 @@ async function load_champ(session: any) {
       await appWindow.setFocus();
     }
 
+    gameMode.value = await getCurrentGameMode();
     if (gameMode.value != "CLASSIC") {
       await loadBuild("top"); //Aram and Urf mode no need lane, so give random lane to it.
     } else {
@@ -90,16 +91,13 @@ async function load_champ(session: any) {
 }
 
 async function init() {
-  onChampSelect.value =
-    (await lget<string>("/lol-gameflow/v1/gameflow-phase")) == "ChampSelect";
-  gameMode.value = await getCurrentGameMode();
+  onChampSelect.value = await isChampionSelecting()
   let d = await lget<any>("/lol-champ-select/v1/session");
   await load_champ(d);
 
   unlisten.value = await listen<LcuEvents>("lcu_events", async (e) => {
     if (e.payload.uri == "/lol-gameflow/v1/gameflow-phase") {
       if (e.payload.data == "ChampSelect") {
-        gameMode.value = await getCurrentGameMode();
         onChampSelect.value = true;
       } else onChampSelect.value = false;
       clearInfo();
@@ -210,7 +208,7 @@ async function loadBuild(val?: string) {
       return;
     }
     loading.value = true;
-    build.value = await loadBuildCore(
+    build.value = await buildManager.getBuildFromCacheElseRequest(
       championInfo.value.id,
       val,
       gameMode.value
@@ -219,22 +217,6 @@ async function loadBuild(val?: string) {
   }
 }
 
-async function loadBuildCore(
-  championName: string,
-  lane: string,
-  mode: string
-): Promise<Build> {
-  return (
-    builds.get(lane) ??
-    (await invoke<Build>("get_champion_build", {
-      championName,
-      lane,
-      mode,
-    }))
-  );
-}
-
-let builds: Map<string, Build> = new Map();
 async function autoSelect() {
   if (!championInfo.value) {
     ElMessage.warning({
@@ -246,24 +228,11 @@ async function autoSelect() {
   selectDisable.value = true;
   loading.value = true;
 
-  let bs = await invoke<Build[]>("get_champion_all_build", {
-    championName: championInfo.value.id,
-    mode: gameMode.value,
-  });
-  let last: Build | undefined = undefined;
-  for (let index = 0; index < bs.length; index++) {
-    const b = bs[index];
-    if (b.runes.length > 0) {
-      if (!last || b.runes[0].play > last.runes[0].play) {
-        last = b;
-      }
-    }
-    builds.set(b.lane, b);
-  }
+  let popularBuild = await buildManager.getPopularBuild(championInfo.value.id, gameMode.value);
 
-  if (last) {
-    selectedLane.value = last.lane;
-    build.value = last;
+  if (popularBuild) {
+    selectedLane.value = popularBuild.lane;
+    build.value = popularBuild;
   }
 
   loading.value = false;
@@ -345,7 +314,7 @@ onUnmounted(() => {
 
         <Spells v-if="build && championInfo" :spells="build.spells"></Spells>
         <Runes v-if="build && championInfo" :is-custom="build.is_custom" :runes="build.runes"
-          :champion-name="championInfo.id" :selected-lane="selectedLane" :game-mode="gameMode"></Runes>
+          :champion-id="championInfo.id" :selected-lane="selectedLane" :game-mode="gameMode"></Runes>
       </el-scrollbar>
     </el-skeleton>
   </div>

@@ -6,7 +6,7 @@ import { ChampionInfo } from './models/LOL/ChampionInfo';
 import { Mastery } from './models/LOL/Materies';
 import { SummonerInfo } from './models/LOL/SummonerInfo';
 import { currentSummoner, summonerIconUrl } from './utils/global';
-import { getChampionIconUrl, lget } from './utils/lcu';
+import { getChampionIconUrl, getChampionRawInfo, lget } from './utils/lcu';
 
 interface ChampionMasteryTop {
     masteries: Mastery[],
@@ -34,9 +34,7 @@ async function init() {
     if (masteries) {
         for (let index = 0; index < masteries.masteries.length; index++) {
             const element = masteries.masteries[index];
-            let info: ChampionInfo = await invoke("get_champion_raw_info", {
-                championId: element.championId.toString()
-            });
+            let info: ChampionInfo = await getChampionRawInfo(element.championId.toString())
             let id = info.id.toLowerCase();
             (info as any).icon = await getChampionIconUrl(element.championId.toString());
             masteriesTopInfo.value.push(info);

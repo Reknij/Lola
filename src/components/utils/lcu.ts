@@ -1,9 +1,10 @@
 import { invoke } from "@tauri-apps/api";
 import { LolRuneItem } from "../models/LOL/LolRuneItem";
-import { RuneItem, SpellItem } from "../models/Backend/SelectChampion";
-import { Mode } from "../models/LOL/gameMode";
+import { Build, RuneItem, SpellItem } from "../models/Backend/SelectChampion";
+import { GameMode } from "../models/LOL/gameMode";
 import { SummonerInfo } from "../models/LOL/SummonerInfo";
 import { currentSummoner } from "./global";
+import { ChampionInfo } from "../models/LOL/ChampionInfo";
 
 export function lget<T>(url: string): Promise<T> {
     return invoke<T>("lcu_get", {
@@ -45,6 +46,16 @@ export async function getChampionIconUrl(championId: string): Promise<string> {
     return icon;
 }
 
+export async function isChampionSelecting(): Promise<boolean> {
+    return (await lget<string>("/lol-gameflow/v1/gameflow-phase")) == "ChampSelect";
+}
+
+export async function getChampionRawInfo(championKey: string): Promise<ChampionInfo> {
+    return await invoke("get_champion_raw_info", {
+        championKey
+    });
+}
+
 export async function getCurrentRune(): Promise<LolRuneItem | undefined> {
     const list = await lget(`lol-perks/v1/pages`) as Array<LolRuneItem>;
     const current = list.find((i) => i.current && i.isDeletable);
@@ -78,38 +89,53 @@ export async function setCurrentSpell(spellItem: SpellItem) {
     })
 }
 
-export async function addChampionCustomRune(championName: string, mode: string, runeItem: LolRuneItem): Promise<boolean> {
+export async function getChampionBuild(championId: string, lane: string, gameMode: string): Promise<Build> {
+    return await invoke<Build>("get_champion_build", {
+        championId,
+        lane,
+        gameMode,
+      })
+}
+
+export async function getChampionAllBuild(championId: string, gameMode: string): Promise<Build[]> {
+    return await invoke<Build[]>("get_champion_all_build", {
+        championId,
+        gameMode,
+      });
+}
+
+export async function addChampionCustomRune(championId: string, gameMode: string, runeItem: LolRuneItem): Promise<boolean> {
     return await invoke("add_champion_custom_rune", {
-        championName,
-        mode,
+        championId,
+        gameMode,
         runeItem
     });
 }
 
-export async function removeChampionCustomRune(championName: string, mode: string, runeName: string): Promise<boolean> {
+export async function removeChampionCustomRune(championId: string, gameMode: string, runeName: string): Promise<boolean> {
     return await invoke("remove_champion_custom_rune", {
-        championName,
-        mode,
+        championId,
+        gameMode,
         runeName
     });
 }
 
-export async function removeChampionCustomRunes(championName: string, mode: string): Promise<boolean> {
+export async function removeChampionCustomRunes(championId: string, gameMode: string): Promise<boolean> {
     return await invoke("remove_champion_custom_runes", {
-        championName,
-        mode
+        championId,
+        gameMode
     });
 }
 
-export async function getCurrentGameMode(): Promise<Mode> {
+export async function getCurrentGameMode(): Promise<GameMode> {
     let session = await lget<any>('/lol-gameflow/v1/session');
-    if (session?.gameData?.queue?.gameMode == 'ARAM') return Mode.aram
-    else if (session?.gameData?.queue?.gameMode == 'URF') return Mode.urf
-    else if (session?.gameData?.queue?.gameMode == 'CLASSIC') return Mode.classic
-    else return Mode.unknown;
+    if (session?.gameData?.queue?.gameMode == 'ARAM') return GameMode.aram
+    else if (session?.gameData?.queue?.gameMode == 'URF') return GameMode.urf
+    else if (session?.gameData?.queue?.gameMode == 'CLASSIC') return GameMode.classic
+    else return GameMode.unknown;
 }
 
-export async function getChampionIdFromSession(session: any): Promise<number> {
+export async function getChampionKeyFromSession(session: any): Promise<number> {
     if (session.actions) {
         for (let action of session.actions) {
             for (let e of action) {
@@ -138,15 +164,15 @@ export function getAssignedPositionFromSession(session: any): string {
         if (summoner.summonerId == currentSummoner.value?.summonerId) {
             let lane = (summoner.assignedPosition as string).toLowerCase();
             switch (lane) {
-                case 'bottom': 
+                case 'bottom':
                     return 'bot';
-                case 'jungle': 
+                case 'jungle':
                     return 'jungle';
-                case 'top': 
+                case 'top':
                     return 'top';
-                case 'middle': 
+                case 'middle':
                     return 'mid';
-                case 'utility': 
+                case 'utility':
                     return 'support';
                 default:
                     return 'none';
@@ -157,13 +183,13 @@ export function getAssignedPositionFromSession(session: any): string {
     return 'none'
 }
 
-export function getGameName(queueId: number): string{
+export function getGameName(queueId: number): string {
     switch (queueId) {
-      case 420 : return 'RANKED SOLO/DUO';
-      case 430 : return 'BLIND PICK';
-      case 440 : return 'RANKED FLEX';
-      case 450 : return 'ARAM';
-      case 900 : return 'URF';
+        case 420: return 'RANKED SOLO/DUO';
+        case 430: return 'BLIND PICK';
+        case 440: return 'RANKED FLEX';
+        case 450: return 'ARAM';
+        case 900: return 'URF';
     }
     return 'Other Mode'
-  }
+}

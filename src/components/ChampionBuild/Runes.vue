@@ -7,7 +7,7 @@ import { removeChampionCustomRune, setCurrentRune } from '../utils/lcu';
 let props = defineProps<{
     runes: RuneItem[],
     isCustom: boolean,
-    championName: string,
+    championId: string,
     selectedLane: string,
     gameMode: string,
 }>();
@@ -21,7 +21,7 @@ async function setRune(rune: RuneItem) {
 }
 
 async function removeRune(rune: RuneItem) {
-    if (await removeChampionCustomRune(props.championName, props.gameMode, rune.name)) {
+    if (await removeChampionCustomRune(props.championId, props.gameMode, rune.name)) {
         for (let index = 0; index < props.runes.length; index++) {
             const r = props.runes[index];
             if (r.name == rune.name) {
